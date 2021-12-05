@@ -1,0 +1,28 @@
+pipeline {
+	agent any
+	environment {
+		NAME = 'Myname'
+		LASTNAME = 'MyLast Name'
+	}
+	stages {
+		stage('SourceCodeDownload') {
+			steps {
+				git 'git@git.com/ansible_terraform.git'
+			}
+		}
+		stage('terraformPlan') {
+			steps {
+				sh 'sudo ansible-playbook -i "localhost" main.yml --skip-tags deploy -e "workspace=${WORKSPACE}"' 
+			}
+		}
+    	stage ('terraformDeploy'){
+    	    input{
+    	        message "Do you want to proceed for Provisioning Infrastructure?"
+    	    }
+    	    steps {
+    	        sh 'sudo ansible-playbook -i "localhost" main.yml --tags deploy -e "workspace=${WORKSPACE}"' 
+    	    }
+    	}
+	}
+
+}

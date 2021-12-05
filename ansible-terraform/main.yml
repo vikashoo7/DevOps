@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - include_vars: ansible_variable.yml
+    - name: copy the variable file
+      template:
+        src:  "/{{ workspace }}/var.j2"
+        dest: "/{{ workspace }}/terraform_script/terraform.tfvars"
+        owner: jenkins
+        group: jenkins
+        
+    - name: deploying the terraform Plan
+      terraform:
+        project_path: "/{{ workspace }}/terraform_script"
+        plan_file: '/{{ workspace }}/terraform_script/tfplan'
+        state: planned
+        force_init: true
+
+    - name: deploying the terraform Apply
+      terraform:
+        project_path: "/{{ workspace }}/terraform_script"
+        state: present
+        backend_config
+          region: "eu-west-1"
+          bucket: "S3"
+          key: "/{{ workspace }}/terraform_script/terraform.tfstate"
+      tags: deploy

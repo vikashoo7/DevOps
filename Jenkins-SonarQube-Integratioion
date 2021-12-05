@@ -1,0 +1,112 @@
+Configure the Sonarqube server
+------------------------------
+	1. Docker method Installation for sonarQube
+		#mkdir -p /sonarqube/data /sonarqube/extensions
+		#docker run -d -v /sonarqube/data:/opt/sonarqube/data -v /sonarqube/extensions:/opt/sonarqube/extensions --name sonarqube -p 9000:9000 -p 9092:9092  sonarqube
+
+		Note: login to the image with user->admin and password->admin
+
+	2. Tar installation for SonarQube
+
+Deploying the sonar scanner
+-----------------------------
+Download sonar scanner
+	#mkdir /sonarqubescanner
+	#cd /sonarqubescanner
+	#wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+Unzip the file
+	#unzip sonar-scanner-cli-4.6.2.2472-linux.zip
+Edit the Property file
+	#cd sonar-scanner-cli-4.6.2.2472-linux/conf
+	#vi sonar-scanner.properties
+		sonar.host.url=http://myhost:9000
+		
+		
+Jenkins Configuration for sonnar Scanner
+----------------------------------------
+go to path Jenkins --> Global Tool Configuration and "SonarQube Scanner" under provide the below information
+	Name --> <provide-the-name>
+	SONAR_RUNNER_HOME --> <provide-the-home-directory-for-sonarScanner>
+
+Jenkins Configuration for sonnarQube Server 
+---------------------------------
+go to path "Jenkins --> configuration" and "SonarQube servers" under provide the below information
+	Name --> <provide-the-name>
+	Server URL --> <provide-sonarqube-URL>
+	Server authentication token --> <generate-the-access-token-from-Sonarqube-Server>
+
+
+Integrating the Jenkins and sonarqube(job configuration)
+-------------------------------------
+Under the build section. select "Execute Sonarqube Scanner" and "Analysis properties" box, mention the below parameter.
+	sonar.projectKey=<project-key-can-be-any-thing>
+	sonar.projectName=<provide-the-project-name>
+	sonar.projectVersion=<provide-the-version>
+	sonar.sources=/var/lib/jenkins/workspace/$JOB_NAME/<project-code>
+	sonar.sourceEncoding=UTF-8
+	sonar.sources=.
+
+
+DOt net installation
+--------------------
+RPM installation
+     rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+     yum install dotnet-sdk-5.0
+     
+Tar installation 
+     wget https://download.visualstudio.microsoft.com/download/pr/13b9d84c-a35b-4ffe-8f62-447a01403d64/1f9ae31daa0f7d98513e7551246899f2/dotnet-sdk-5.0.400-linux-x64.tar.gz
+     export DOTNET_ROOT=$HOME/dotnet
+Steps to run the sonarqube
+	dotnet tool install --global dotnet-sonarscanner
+	dotnet sonarscanner begin /k:"project-key" /d:sonar.login="<token>"
+	dotnet build <path to solution.sln>
+	dotnet sonarscanner end /d:sonar.login="<token>"
+
+	##################################################
+	dotnet /app/sonarqubeScanner/SonarScanner.MSBuild.dll begin /k:"mykeyww"  /n:"doNetMy" /v:"1.0"
+	dotnet build
+	dotnet /app/sonarqubeScanner/SonarScanner.MSBuild.dll end
+	
+	Error:
+	-----------
+	03:21:49.278  Your SonarQube instance seems to have an invalid license. Please check it. Server url : http://localhost:9000
+	coverlet code coverag
+Running/compiling the project
+-------------------------------
+	#dotnet /app/sonarqubeScanner/sonar-scanner-msbuild-4.10.0.19059/SonarScanner.MSBuild.dll begin /k:"tetinging"  /n:"testing" /v:"1.0" /d:sonar.host.url=http://localhost:9000 /d:sonar.login="<token>"
+	#dotnet msbuild
+	#dotnet /app/sonarqubeScanner/sonar-scanner-msbuild-4.10.0.19059/SonarScanner.MSBuild.dll end  /d:sonar.login="<token>"
+	
+	#dotnet tool install --global coverlet.console     -->installing the coverlet
+	#yum install java-11-openjdk-headless    --> java installation
+	#dotnet test <unit-test-file> /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+	#dotnet-sonarscanner begin /k:"cicd"  /n:"cicd" /v:"1.0" /d:sonar.host.url=http://localhost:9000 /d:sonar.login="7d0581b22314ef5f9ad26bb138241e792751546f" /d:sonar.cs.opencover.reportsPaths="Reports/index.html"
+	dotnet test /p:CollectCoverage=true /p:ExcludeByFile="**/Infrastructure/**/*.cs%2C**/DTO/**/*.cs%2C**/LoggerService/**/*.cs%2C**/LoggerServiceClient/**/*.cs%2C**/Middlewares/*.cs%2C**/Extensions/*.cs%2C**/Enum/*.cs"
+
+OpenCover
+---------
+	dotnet tool install --global dotnet-testx
+	sonar.cs.opencover.reportsPaths=results.xml
+	sonar.issue.ignore.multicriteria.e2.resourceKey=**/*.html
+	/d:sonar.cs.opencover.reportsPaths="results.xml" --> need to add at the begin sec"tion
+	
+
+dotCover
+--------------
+	dotnet tool install JetBrains.dotCover.GlobalTool -g
+	/d:sonar.cs.dotcover.it.reportsPaths=dotCover.Output.html --> need to add at the begin section
+
+	dotCover Integration Tests (HTML) Reports Paths -> *
+	dotnet dotcover test --dcReportType=HTML
+
+	sonar.cs.dotcover.reportsPaths=dotCover.Output.html
+	dotnet dotcover test --dcReportType=HTML  --dcFilters="+:AClient.Repository;-:type=AClient.Repository.Extensions.*;-:type=AClient.Repository.Models.*"
+	
+	/d:sonar.exclusions="**/wwwroot/**, **/obj/**, **/bin/**"
+
+Project Reference 
+https://github.com/adampaquette/Sonarqube-Coverlet-NetCore-Example
+/d:sonar.cs.opencover.reportsPaths=Math.Test/coverage.opencover.xml 
+/d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests*.cs"
+dotnet-sonarscanner begin /k:"cicd"  /n:"cicd" /v:"1.0" /d:sonar.host.url=http://localhost:9000 /d:sonar.login="7d0581b22314ef5f9ad26bb138241e792751546f" /d:sonar.cs.opencover.reportsPaths="XUnit.Coverlet.MSBuild/coverage.opencover.xml"
+p:CoverletOutput=TestResults/Coverage

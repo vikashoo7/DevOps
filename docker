@@ -1,0 +1,18 @@
+FROM openjdk:16-alpine3.13
+COPY target/demo-0.0.1-SNAPSHOT.jar /demo.jar
+CMD ["java", "-jar", "/demo.jar"]
+
+
+
+###################################################
+ssh from the container
+-----------------------
+FROM centos:latest
+RUN yum install openssh-server -y
+RUN echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+RUN ssh-keygen -A
+RUN yum install passwd -y
+RUN echo 'root' |passwd --stdin root
+RUN rm  /run/nologin
+RUN useradd -s /bin/bash user && echo 'user' |passwd --stdin user
+CMD ["/usr/sbin/sshd", "-D"]

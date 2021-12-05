@@ -1,0 +1,77 @@
+main.yml
+---------
+---
+- name: Remove the existing file
+  file:
+    path: "{{ urlfile }}"
+    state: absent
+
+- name: Creating the urlfile
+  file:
+    path: "{{ urlfile }}"
+    state: touch
+
+- name: creating the url file
+  lineinfile:
+    path: "{{ urlfile }}"
+    line: "{{ item}}"
+  with_items:
+    - "{{  syscode[app]}}"
+
+- name: shell script to the target servers
+  copy:
+    src: "{{ script }}"
+    dest: "{{ destPath }}"
+
+- name: Run the shell script
+  shell: sh "{{ destPath }}"
+
+
+var.yml
+---------
+---
+urlfile: /tmp/urlfile
+destPath: /tmp/script
+script: script
+syscode:
+  app1:
+    - url1
+    - url2
+    - url3
+  app2:
+    - url4
+    - url5
+    - url6
+    
+    
+    
+    ##################################
+      tasks:
+    - include_vars: v.yml
+    - name: printing the message
+      win_shell: echo "one" >> C:\one
+      when: item.role == 'one'
+      delegate_to: "{{ item.host_name }}"
+      loop: "{{ servers }}"
+      
+      v.yml
+      -----
+      servers:
+  - host_name:  server1
+    role: one
+  - host_name: server2
+    role: two
+
+#############################################################
+{% set example_variable =  inventory_hostname.split('-')[0]  -%}
+{% if example_variable == d -%}
+this is "WC"
+{% elif example_variable == d -%}
+This is other datacenter
+{% else -%}
+This is other
+{% endif %}
+
+################################################################
+{% set data = 'database'~example_variable |default([]) -%}
+{{ data }}
