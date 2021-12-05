@@ -1,0 +1,28 @@
+AWS dynamic inventory
+-----------------------
+Ref. URL : 
+	Ansible:
+		https://docs.ansible.com/ansible/latest/collections/amazon/aws/aws_ec2_inventory.html#examples
+	Pip installation
+		https://pip.pypa.io/en/stable/installation/
+
+1. install the below 
+	# ansible-galaxy collection install amazon.aws
+2. Install install boto3
+	# pip install boto3
+3. Create the "aws_ec2.yml"
+	#vi aws_ec2.yml
+
+plugin: aws_ec2
+regions:
+  - us-east-1
+filters:
+  # All instances with their `Environment` tag set to `dev`
+  tag:Environment: dev
+  # All dev and QA hosts
+  tag:Environment:
+    - dev
+    - qa
+
+4. Check the list of the host
+	#ansible-inventory -i aws_ec2.yml --list
