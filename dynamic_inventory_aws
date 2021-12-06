@@ -26,3 +26,4 @@ filters:
 
 4. Check the list of the host
 	#ansible-inventory -i aws_ec2.yml --list
+	#ansible all -m ping --private-key=ansible.pem
